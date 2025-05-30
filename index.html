@@ -1,64 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Pension Calculator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UPS Pension Calculator</title>
   <style>
-    body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
-    input, button { display: block; margin: 10px 0; width: 100%; padding: 8px; }
-    #result { margin-top: 20px; font-weight: bold; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .result {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #e8f5e9;
+      padding: 20px;
+      border-radius: 10px;
+      color: #2e7d32;
+    }
   </style>
 </head>
 <body>
-
-  <h1>Pension Calculator</h1>
-  
-  <label>Current Age:
-    <input type="number" id="currentAge" required>
-  </label>
-  
-  <label>Retirement Age:
-    <input type="number" id="retirementAge" required>
-  </label>
-
-  <label>Current Savings INR:
-    <input type="number" id="currentSavings" required>
-  </label>
-
-  <label>Monthly Contribution INR:
-    <input type="number" id="monthlyContribution" required>
-  </label>
-
-  <label>Annual Return Rate (%):
-    <input type="number" id="annualReturn" required>
-  </label>
-
-  <button onclick="calculatePension()">Calculate Pension</button>
-
-  <div id="result"></div>
+  <h1>UPS Pension Calculator</h1>
+  <form id="pensionForm">
+    <label>Date of Birth:<input type="date" id="dob" required></label>
+    <label>Date of Joining:<input type="date" id="doj" required></label>
+    <label>Retirement Age:<input type="number" id="retAge" value="60" required></label>
+    <label>Basic Salary (Annual):<input type="number" id="basicSalary" required></label>
+    <label>Existing Corpus:<input type="number" id="corpus" value="0"></label>
+    <label>Annual Growth Rate of Basic Pay (%):<input type="number" step="0.01" id="growthRate" value="5"></label>
+    <label>Annual DA Growth Rate (%):<input type="number" step="0.01" id="daGrowth" value="5"></label>
+    <label>Expected Return Rate (%):<input type="number" step="0.01" id="returnRate" value="8"></label>
+    <label>Final Withdrawal Percentage (%):<input type="number" step="0.01" id="withdrawal" value="40"></label>
+    <button type="submit">Calculate Pension</button>
+  </form>
+  <div id="result" class="result" style="display:none"></div>
 
   <script>
-    function calculatePension() {
-      const age = parseInt(document.getElementById('currentAge').value);
-      const retirement = parseInt(document.getElementById('retirementAge').value);
-      const savings = parseFloat(document.getElementById('currentSavings').value);
-      const monthly = parseFloat(document.getElementById('monthlyContribution').value);
-      const returnRate = parseFloat(document.getElementById('annualReturn').value) / 100;
+    document.getElementById("pensionForm").addEventListener("submit", function(e) {
+      e.preventDefault();
 
-      const years = retirement - age;
-      const months = years * 12;
-      const monthlyRate = returnRate / 12;
+      const dob = new Date(document.getElementById("dob").value);
+      const doj = new Date(document.getElementById("doj").value);
+      const retirementAge = parseInt(document.getElementById("retAge").value);
+      const basicSalary = parseFloat(document.getElementById("basicSalary").value);
+      const existingCorpus = parseFloat(document.getElementById("corpus").value);
+      const annualGrowth = parseFloat(document.getElementById("growthRate").value) / 100;
+      const daGrowth = parseFloat(document.getElementById("daGrowth").value) / 100;
+      const returnRate = parseFloat(document.getElementById("returnRate").value) / 100;
+      const withdrawalPercentage = parseFloat(document.getElementById("withdrawal").value);
 
-      let futureValue = savings;
+      const retirementDate = new Date(dob);
+      retirementDate.setFullYear(retirementDate.getFullYear() + retirementAge);
+      const serviceYears = (retirementDate - doj) / (1000 * 60 * 60 * 24 * 365);
 
-      for (let i = 0; i < months; i++) {
-        futureValue = futureValue * (1 + monthlyRate) + monthly;
+      let corpus = existingCorpus;
+      for (let year = 1; year <= serviceYears; year++) {
+        let currentSalary = basicSalary * Math.pow(1 + annualGrowth, year);
+        let da = currentSalary * (Math.pow(1 + daGrowth, year) - 1);
+        let yearlyContribution = (currentSalary + da) * 0.24;
+        corpus = corpus * (1 + returnRate) + yearlyContribution;
       }
 
-      document.getElementById('result').innerText = 
-        `Estimated savings at retirement: INR{futureValue.toFixed(2)}`;
-    }
-  </script>
+      const remainingCorpus = corpus * (1 - withdrawalPercentage / 100);
+      const annualPension = remainingCorpus * 0.07;
+      const monthlyPension = annualPension / 12;
 
+      const result = document.getElementById("result");
+      result.style.display = "block";
+      result.innerHTML = `
+        <h3>Results</h3>
+        <p><strong>Years of Service:</strong> ₹{serviceYears.toFixed(1)}</p>
+        <p><strong>Final Corpus:</strong> ₹{corpus.toFixed(2)}</p>
+        <p><strong>Estimated Monthly Pension:</strong> ₹{monthlyPension.toFixed(2)}</p>
+      `;
+    });
+  </script>
 </body>
 </html>
