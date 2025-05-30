@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pension Calculator</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
+    input, button { display: block; margin: 10px 0; width: 100%; padding: 8px; }
+    #result { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1>Pension Calculator</h1>
+  
+  <label>Current Age:
+    <input type="number" id="currentAge" required>
+  </label>
+  
+  <label>Retirement Age:
+    <input type="number" id="retirementAge" required>
+  </label>
+
+  <label>Current Savings ($):
+    <input type="number" id="currentSavings" required>
+  </label>
+
+  <label>Monthly Contribution ($):
+    <input type="number" id="monthlyContribution" required>
+  </label>
+
+  <label>Annual Return Rate (%):
+    <input type="number" id="annualReturn" required>
+  </label>
+
+  <button onclick="calculatePension()">Calculate Pension</button>
+
+  <div id="result"></div>
+
+  <script>
+    function calculatePension() {
+      const age = parseInt(document.getElementById('currentAge').value);
+      const retirement = parseInt(document.getElementById('retirementAge').value);
+      const savings = parseFloat(document.getElementById('currentSavings').value);
+      const monthly = parseFloat(document.getElementById('monthlyContribution').value);
+      const returnRate = parseFloat(document.getElementById('annualReturn').value) / 100;
+
+      const years = retirement - age;
+      const months = years * 12;
+      const monthlyRate = returnRate / 12;
+
+      let futureValue = savings;
+
+      for (let i = 0; i < months; i++) {
+        futureValue = futureValue * (1 + monthlyRate) + monthly;
+      }
+
+      document.getElementById('result').innerText = 
+        `Estimated savings at retirement: $${futureValue.toFixed(2)}`;
+    }
+  </script>
+
+</body>
+</html>
